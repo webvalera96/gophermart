@@ -8,6 +8,6 @@ import (
 
 func NewRouter() *chi.Mux {
 	r := chi.NewRouter()
-	r.Get("/api/user/register", user.RegisterHandler{}.ServeHTTP)
+	r.Post("/api/user/register", user.RegisterHandler{}.ServeHTTP)
 	return r
 }
