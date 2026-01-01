@@ -3,24 +3,26 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"gophermart/internal/logger"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
 	"net/http"
 )
 
 type RegisterHandler struct {
-	repo repository.DatabaseRepository
+	logger *logger.Logger
+	repo   repository.DatabaseRepository
 }
 
-func NewRegisterHandler(repo repository.DatabaseRepository) RegisterHandler {
-	return RegisterHandler{repo: repo}
+func NewRegisterHandler(logger *logger.Logger, repo repository.DatabaseRepository) RegisterHandler {
+	return RegisterHandler{logger: logger, repo: repo}
 }
 
 // 200 http.StatusOK — пользователь успешно зарегистрирован и аутентифицирован;
 // 400 http.StatusBadRequest — неверный формат запроса;
 // 409 http.StatusConflict — логин уже занят;
 // 500 http.StatusInternalServerError — внутренняя ошибка сервера.
-func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 
 	err := json.NewDecoder(r.Body).Decode(&u)
@@ -38,9 +40,7 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
-	} else {
-		// TODO: implement log of successfull registration using zap
 	}
-
+	h.logger.Info("Successfuly create user")
 	w.WriteHeader(http.StatusOK)
 }
