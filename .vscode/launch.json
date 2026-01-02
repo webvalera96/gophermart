@@ -10,7 +10,6 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/src/gophermart",
-      "envFile": "${workspaceFolder}/.env",
       "args": []
     },
   ]

@@ -1,8 +1,7 @@
 version: "3"
 
 includes:
-  podman: ./podman
-
+  docker: ./docker
 tasks:
   mockgen:
     desc: "Generate mock implementations for interfaces"
