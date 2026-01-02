@@ -16,7 +16,7 @@ type PGDatabase struct {
 	logger *logger.Logger
 }
 
-func NewPGDatabase(config config.Config, logger *logger.Logger) repository.DatabaseRepository {
+func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.DatabaseRepository {
 	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s",
 		config.DBName,
 		config.User,
@@ -29,7 +29,7 @@ func NewPGDatabase(config config.Config, logger *logger.Logger) repository.Datab
 		panic(err)
 	}
 
-	return PGDatabase{db: db}
+	return PGDatabase{db: db, logger: logger}
 }
 
 // Create user in postgresql database

@@ -20,7 +20,7 @@ type Config struct {
 	DatabaseConfig
 }
 
-func NewConfig(logger logger.Logger) *Config {
+func NewConfig(logger *logger.Logger) *Config {
 	_, err := os.Stat(".env")
 
 	// Если файлов конфъгурации нет, то

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gophermart/internal/config"
 	"gophermart/internal/handlers"
 	"gophermart/internal/logger"
 	"gophermart/internal/repository/pg"
@@ -16,6 +17,7 @@ func main() {
 		fx.Provide(handlers.NewRouter),
 		fx.Provide(pg.NewPGDatabase),
 		fx.Provide(logger.NewLogger),
+		fx.Provide(config.NewConfig),
 		fx.Invoke(func(*http.Server) {}),
 	).Run()
 }
