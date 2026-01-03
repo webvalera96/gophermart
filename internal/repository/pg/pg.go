@@ -3,6 +3,7 @@ package pg
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"gophermart/internal/config"
 	"gophermart/internal/logger"
@@ -35,14 +36,14 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 	m, err := migrate.NewWithSourceInstance(
 		"iofs",
 		d,
-		//TODO: enable sslmode in production
+		//TODO: add configuration for sslmode
 		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.User, config.Password, config.Host, config.Port, config.DBName),
 	)
 	if err != nil {
 		logger.Fatalf("Migration failed: %v", err)
 		return err
 	}
-	if err := m.Up(); err != nil {
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Fatalf("Migration failed: %v", err)
 	}
 
@@ -50,7 +51,8 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 }
 
 func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.DatabaseRepository {
-	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s",
+	// TODO: add configuration for sslmode
+	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s sslmode=disable",
 		config.DBName,
 		config.User,
 		config.Password,
@@ -70,9 +72,9 @@ func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.Data
 func (pg PGDatabase) CreateUser(u models.User) error {
 	var id int
 	_, err := pg.GetUserByLogin(u.Login)
-	var unf repository.UserNotFoundError
-	if err == &unf { // проверяем, что пользователь с таким именем не будет зарегестрирован
-		err := pg.db.QueryRow("INSERT INTO users VALUES ($1, $2) RETURNING id", u.Login, u.Password).Scan(&id)
+	var unf *repository.UserNotFoundError
+	if errors.As(err, &unf) { // проверяем, что пользователь с таким именем не будет зарегестрирован
+		err := pg.db.QueryRow("INSERT INTO users(login, password) VALUES ($1, $2) RETURNING id", u.Login, u.Password).Scan(&id)
 		if err != nil {
 			return err
 		}
