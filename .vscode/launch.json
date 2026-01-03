@@ -10,7 +10,8 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/src/gophermart",
-      "args": []
+      "args": [],
+      "cwd": "${workspaceFolder}"
     },
   ]
 }

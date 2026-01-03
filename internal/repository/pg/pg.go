@@ -68,6 +68,30 @@ func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.Data
 
 // Create user in postgresql database
 func (pg PGDatabase) CreateUser(u models.User) error {
+	var id int
+	_, err := pg.GetUserByLogin(u.Login)
+	var unf repository.UserNotFoundError
+	if err == &unf { // проверяем, что пользователь с таким именем не будет зарегестрирован
+		err := pg.db.QueryRow("INSERT INTO users VALUES ($1, $2) RETURNING id", u.Login, u.Password).Scan(&id)
+		if err != nil {
+			return err
+		}
+	} else { // если такой пользователь уже существует, вернуть ошибку создания пользователя
+		return &repository.UserAlreadyExistsError{}
+	}
 	pg.logger.Debug("TODO: create user in database")
 	return nil
+}
+
+func (pg PGDatabase) GetUserByLogin(login string) (*models.User, error) {
+	var user models.User
+	row := pg.db.QueryRow("SELECT * FROM users WHERE login = $1", login)
+	err := row.Scan(user)
+	if err == sql.ErrNoRows { // не удалось найти пользователя
+		return nil, &repository.UserNotFoundError{}
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
