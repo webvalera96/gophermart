@@ -14,7 +14,10 @@ type RegisterHandler struct {
 	repo   repository.DatabaseRepository
 }
 
-func NewRegisterHandler(logger *logger.Logger, repo repository.DatabaseRepository) RegisterHandler {
+func NewRegisterHandler(
+	logger *logger.Logger,
+	repo repository.DatabaseRepository,
+) RegisterHandler {
 	return RegisterHandler{logger: logger, repo: repo}
 }
 
