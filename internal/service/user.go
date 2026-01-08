@@ -12,7 +12,7 @@ func RegisterUser(
 	if err != nil {
 		return "", err
 	}
-	token, err := IssueToken(u.Password)
+	token, err := IssueToken(u.Login)
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +33,7 @@ func LoginUser(
 		return "", &repository.WrongCredentialsError{}
 	}
 
-	token, err := IssueToken(u.Password)
+	token, err := IssueToken(u.Login)
 	if err != nil {
 		return "", err
 	}

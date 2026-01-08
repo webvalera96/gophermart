@@ -19,8 +19,8 @@ type LoginHandler struct {
 func NewLoginHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
-) LoginHandler {
-	return LoginHandler{logger: logger, repo: repo}
+) *LoginHandler {
+	return &LoginHandler{logger: logger, repo: repo}
 }
 
 // 200 — пользователь успешно аутентифицирован;

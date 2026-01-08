@@ -1,12 +1,29 @@
 package handlers
 
 import (
+	"gophermart/internal/handlers/api/orders"
 	"gophermart/internal/handlers/api/user"
 	"gophermart/internal/logger"
 	"gophermart/internal/repository"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
+
+func authMiddleware(_ repository.DatabaseRepository, logger *logger.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := r.Header.Get("Authorization")
+			if token == "" {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			logger.Infof("Authorization token: %s", token)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 func NewRouter(
 	logger *logger.Logger,
@@ -14,16 +31,11 @@ func NewRouter(
 ) *chi.Mux {
 	r := chi.NewRouter()
 
-	// Создание обработчиков
-	registerHandler := user.NewRegisterHandler(logger, repo)
-	loginHandler := user.NewLoginHandler(logger, repo)
+	r.Post("/api/user/register", user.NewRegisterHandler(logger, repo).ServeHTTP)
+	r.Post("/api/user/login", user.NewLoginHandler(logger, repo).ServeHTTP)
 
-	// Middleware
-	// TODO: реализовать проверку токена в заголовке Authorization
-
-	// Определение API
-	r.Post("/api/user/register", registerHandler.ServeHTTP)
-	r.Post("/api/user/login", loginHandler.ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Get("/api/user/orders", orders.NewGetOrdersHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Post("/api/user/orders", orders.NewPostOrdersHandler(logger, repo).ServeHTTP)
 
 	return r
 }

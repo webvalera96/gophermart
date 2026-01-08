@@ -18,8 +18,8 @@ type RegisterHandler struct {
 func NewRegisterHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
-) RegisterHandler {
-	return RegisterHandler{logger: logger, repo: repo}
+) *RegisterHandler {
+	return &RegisterHandler{logger: logger, repo: repo}
 }
 
 // 200 http.StatusOK — пользователь успешно зарегистрирован и аутентифицирован;

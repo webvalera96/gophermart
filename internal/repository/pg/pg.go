@@ -87,8 +87,8 @@ func (pg PGDatabase) CreateUser(u models.User) error {
 
 func (pg PGDatabase) GetUserByLogin(login string) (*models.User, error) {
 	var user models.User
-	row := pg.db.QueryRow("SELECT * FROM users WHERE login = $1", login)
-	err := row.Scan(user)
+	row := pg.db.QueryRow("SELECT login, password FROM users WHERE login = $1", login)
+	err := row.Scan(&user.Login, &user.Password)
 	if err == sql.ErrNoRows { // не удалось найти пользователя
 		return nil, &repository.UserNotFoundError{}
 	} else if err != nil {

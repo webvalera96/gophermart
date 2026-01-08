@@ -4,14 +4,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const secret_salt = "secret_salt"
+// TODO: generate secret key securely
+const secret = "my_secret_key"
 
-func IssueToken(password string) (string, error) {
-	key := password + secret_salt
+func IssueToken(login string) (string, error) {
+	key := secret
 
-	t := jwt.New(jwt.SigningMethodHS256)
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"login": login,
+	})
 
-	s, err := t.SignedString(key)
+	s, err := t.SignedString([]byte(key))
 	if err != nil {
 		return "", err
 	}
@@ -19,16 +22,18 @@ func IssueToken(password string) (string, error) {
 	return s, nil
 }
 
-func ValidateToken(password string, tokenString string) error {
-	key := password + secret_salt
+func ValidateToken(tokenString string) (string, error) {
+	key := secret
 
-	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(key), nil
 	})
 
+	login := token.Claims.(jwt.MapClaims)["login"].(string)
+
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return login, nil
 }
