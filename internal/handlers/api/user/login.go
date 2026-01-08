@@ -27,10 +27,7 @@ func NewLoginHandler(
 // 400 — неверный формат запроса;
 // 401 — неверная пара логин/пароль;
 // 500 — внутренняя ошибка сервера.
-func (h LoginHandler) ServeHTTP(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 
 	err := json.NewDecoder(r.Body).Decode(&u)

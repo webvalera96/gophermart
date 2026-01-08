@@ -1,5 +1,8 @@
 package models
 
 type Order struct {
-	Number string
+	ID        int
+	Login     string
+	Number    string
+	OrderDate string
 }

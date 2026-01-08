@@ -97,3 +97,27 @@ func (pg PGDatabase) GetUserByLogin(login string) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
+	var savedOrder models.Order
+
+	user, err := pg.GetUserByLogin(order.Login)
+
+	var unf *repository.UserNotFoundError
+	if errors.As(err, &unf) {
+		return nil, &repository.UserNotFoundError{Msg: "user not found"}
+	}
+
+	err = pg.db.QueryRow("INSERT INTO orders(number, user_id) VALUES ($1, $2) RETURNING id, order_date",
+		order.Number,
+		user.ID,
+	).Scan(&savedOrder.ID, &savedOrder.OrderDate)
+
+	if err != nil {
+		return nil, err
+	}
+	savedOrder.Number = order.Number
+	savedOrder.Login = order.Login
+
+	return &savedOrder, nil
+}

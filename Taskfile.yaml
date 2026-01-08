@@ -9,4 +9,3 @@ tasks:
       - go install go.uber.org/mock/mockgen@latest
       - mockgen -destination=internal/mocks/mocks_database.go -package=mocks gophermart/internal/repository DatabaseRepository
   
-  
