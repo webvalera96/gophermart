@@ -5,19 +5,20 @@ import (
 	"gophermart/internal/repository"
 )
 
-// TODO: реализовать генерацию и возврат токена при логине
 func RegisterUser(
-	// TODO: генерировать авторизационный токен
 	repo repository.DatabaseRepository,
 	u models.User) (string, error) {
 	err := repo.CreateUser(u)
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	token, err := IssueToken(u.Password)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
-// TODO: вместо пустой строки возвращать заголовок Authorization с токеном
 func LoginUser(
 	repo repository.DatabaseRepository,
 	u models.User,
@@ -31,5 +32,10 @@ func LoginUser(
 	if user.Password != u.Password {
 		return "", &repository.WrongCredentialsError{}
 	}
-	return "", nil
+
+	token, err := IssueToken(u.Password)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
