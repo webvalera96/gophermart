@@ -4,6 +4,7 @@ import (
 	"gophermart/internal/logger"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	"gophermart/internal/service"
 	"io"
 	"net/http"
 )
@@ -27,11 +28,13 @@ func (h PostOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Header.Get("Login")
 
-	savedOrder, err := h.repo.CreateOrder(models.Order{Number: number, Login: login})
+	savedOrder, err := service.CreateOrder(h.repo, models.Order{Number: number, Login: login})
+
 	if err != nil {
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
+
 	h.logger.Infof("Order created: %+v", savedOrder)
 	w.WriteHeader(http.StatusOK)
 }

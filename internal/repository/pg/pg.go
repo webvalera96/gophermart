@@ -87,8 +87,11 @@ func (pg PGDatabase) CreateUser(u models.User) error {
 
 func (pg PGDatabase) GetUserByLogin(login string) (*models.User, error) {
 	var user models.User
+	var id int
 	row := pg.db.QueryRow("SELECT id, login, password FROM users WHERE login = $1", login)
-	err := row.Scan(&user.ID, &user.Login, &user.Password)
+	err := row.Scan(&id, &user.Login, &user.Password)
+	user.SetID(id)
+
 	if err == sql.ErrNoRows { // не удалось найти пользователя
 		return nil, &repository.UserNotFoundError{}
 	} else if err != nil {
@@ -107,17 +110,21 @@ func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
 	if errors.As(err, &unf) {
 		return nil, &repository.UserNotFoundError{Msg: "user not found"}
 	}
-
+	var orderId int
+	var orderDate string
 	err = pg.db.QueryRow("INSERT INTO orders(number, user_id) VALUES ($1, $2) RETURNING id, order_date",
 		order.Number,
-		user.ID,
-	).Scan(&savedOrder.ID, &savedOrder.OrderDate)
+		user.GetID(),
+	).Scan(&orderId, &orderDate)
 
 	if err != nil {
 		return nil, err
 	}
-	savedOrder.Number = order.Number
+
+	savedOrder.SetID(orderId)
+	savedOrder.SetOrderDate(orderDate)
 	savedOrder.Login = order.Login
+	savedOrder.Number = order.Number
 
 	return &savedOrder, nil
 }

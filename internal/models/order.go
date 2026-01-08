@@ -1,8 +1,28 @@
 package models
 
 type Order struct {
-	ID        int
+	id        int
 	Login     string
 	Number    string
-	OrderDate string
+	orderDate string
+}
+
+func (o Order) SetID(id int) error {
+	o.id = id
+	// TODO: implement validation logic
+	return nil
+}
+
+func (o Order) GetID() int {
+	return o.id
+}
+
+// TODO: return well formated time date string
+func (o Order) GetOrderDate() string {
+	return o.orderDate
+}
+
+func (o Order) SetOrderDate(orderDate string) error {
+	// TODO: implement validation logic
+	return nil
 }
