@@ -2,7 +2,9 @@ package orders
 
 import (
 	"gophermart/internal/logger"
+	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	"io"
 	"net/http"
 )
 
@@ -12,6 +14,25 @@ type PostOrdersHandler struct {
 }
 
 func (h PostOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: validate that bodyBytes contains a valid order number
+	number := string(bodyBytes)
+
+	login := r.Header.Get("Login")
+
+	savedOrder, err := h.repo.CreateOrder(models.Order{Number: number, Login: login})
+	if err != nil {
+		http.Error(w, "Failed to create order", http.StatusInternalServerError)
+		return
+	}
+	h.logger.Infof("Order created: %+v", savedOrder)
 	w.WriteHeader(http.StatusOK)
 }
 

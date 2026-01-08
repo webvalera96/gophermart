@@ -5,6 +5,7 @@ import (
 	"gophermart/internal/handlers/api/user"
 	"gophermart/internal/logger"
 	"gophermart/internal/repository"
+	"gophermart/internal/service"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +20,12 @@ func authMiddleware(_ repository.DatabaseRepository, logger *logger.Logger) func
 				return
 			}
 
-			logger.Infof("Authorization token: %s", token)
+			login, err := service.ValidateToken(token)
+			if err != nil {
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				return
+			}
+			r.Header.Set("Login", login)
 			next.ServeHTTP(w, r)
 		})
 	}
