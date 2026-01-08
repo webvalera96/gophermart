@@ -128,3 +128,22 @@ func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
 
 	return &savedOrder, nil
 }
+
+func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
+	var order models.Order
+	var id int
+	var userId int
+	var orderDate string
+	row := pg.db.QueryRow("SELECT id, number, user_id, order_date FROM orders WHERE number = $1", number)
+	err := row.Scan(&id, &order.Number, &userId, &orderDate)
+	order.SetID(id)
+	order.SetOrderDate(orderDate)
+
+	if err == sql.ErrNoRows { // не удалось найти заказ
+		return nil, &repository.OrderNotFoundError{}
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}

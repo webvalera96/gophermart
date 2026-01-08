@@ -28,3 +28,12 @@ type WrongCredentialsError struct {
 func (wce *WrongCredentialsError) Error() string {
 	return fmt.Sprintf("code %d: %s", wce.Code, wce.Msg)
 }
+
+type OrderNotFoundError struct {
+	Msg  string
+	Code int
+}
+
+func (onf *OrderNotFoundError) Error() string {
+	return fmt.Sprintf("code %d: %s", onf.Code, onf.Msg)
+}

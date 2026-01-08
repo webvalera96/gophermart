@@ -13,4 +13,7 @@ type DatabaseRepository interface {
 	// --- ORDER operations ---
 	// Create new order for user in database
 	CreateOrder(order models.Order) (*models.Order, error)
+
+	// Get order by number
+	GetOrderByNumber(number string) (*models.Order, error)
 }
