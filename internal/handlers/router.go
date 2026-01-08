@@ -18,6 +18,9 @@ func NewRouter(
 	registerHandler := user.NewRegisterHandler(logger, repo)
 	loginHandler := user.NewLoginHandler(logger, repo)
 
+	// Middleware
+	// TODO: реализовать проверку токена в заголовке Authorization
+
 	// Определение API
 	r.Post("/api/user/register", registerHandler.ServeHTTP)
 	r.Post("/api/user/login", loginHandler.ServeHTTP)

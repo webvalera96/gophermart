@@ -19,3 +19,12 @@ type UserNotFoundError struct {
 func (unf *UserNotFoundError) Error() string {
 	return fmt.Sprintf("code %d: %s", unf.Code, unf.Msg)
 }
+
+type WrongCredentialsError struct {
+	Msg  string
+	Code int
+}
+
+func (wce *WrongCredentialsError) Error() string {
+	return fmt.Sprintf("code %d: %s", wce.Code, wce.Msg)
+}

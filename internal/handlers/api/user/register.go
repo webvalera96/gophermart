@@ -6,6 +6,7 @@ import (
 	"gophermart/internal/logger"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	"gophermart/internal/service"
 	"net/http"
 )
 
@@ -34,9 +35,10 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.repo.CreateUser(u)
-
 	var uaeError *repository.UserAlreadyExistsError
+	token, err := service.RegisterUser(h.repo, u)
+	// err = h.repo.CreateUser(u)
+
 	if errors.As(err, &uaeError) {
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
@@ -45,5 +47,6 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.logger.Info("Successfuly create user")
+	w.Header().Set("Authorization", token)
 	w.WriteHeader(http.StatusOK)
 }
