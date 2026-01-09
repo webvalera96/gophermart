@@ -16,4 +16,7 @@ type DatabaseRepository interface {
 
 	// Get order by number
 	GetOrderByNumber(number string) (*models.Order, error)
+
+	// Get all orders by user login
+	GetOrdersByUserLogin(login string) ([]models.Order, error)
 }

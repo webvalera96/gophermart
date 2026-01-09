@@ -134,6 +134,7 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 	var id int
 	var userId int
 	var orderDate string
+
 	row := pg.db.QueryRow("SELECT id, number, user_id, order_date FROM orders WHERE number = $1", number)
 	err := row.Scan(&id, &order.Number, &userId, &orderDate)
 	order.SetID(id)
@@ -146,4 +147,34 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 	}
 
 	return &order, nil
+}
+
+func (pg PGDatabase) GetOrdersByUserLogin(login string) ([]models.Order, error) {
+	var orders []models.Order
+
+	rows, err := pg.db.Query("SELECT o.id, o.number, o.order_date FROM orders o JOIN users u ON o.user_id = u.id WHERE u.login = $1", login)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var order models.Order
+		var id int
+		var orderDate string
+		err := rows.Scan(&id, &order.Number, &orderDate)
+		if err != nil {
+			return nil, err
+		}
+		order.SetID(id)
+		order.SetOrderDate(orderDate)
+		order.Login = login
+		orders = append(orders, order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

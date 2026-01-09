@@ -37,3 +37,12 @@ type OrderNotFoundError struct {
 func (onf *OrderNotFoundError) Error() string {
 	return fmt.Sprintf("code %d: %s", onf.Code, onf.Msg)
 }
+
+type OrderAlreadyExistsError struct {
+	Msg  string
+	Code int
+}
+
+func (oae *OrderAlreadyExistsError) Error() string {
+	return fmt.Sprintf("code %d: %s", oae.Code, oae.Msg)
+}
