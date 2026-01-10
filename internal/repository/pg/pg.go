@@ -9,6 +9,7 @@ import (
 	"gophermart/internal/logger"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -108,7 +109,7 @@ func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
 		return nil, &repository.UserNotFoundError{Msg: "user not found"}
 	}
 	var orderId int
-	var orderDate string
+	var orderDate time.Time
 	err = pg.db.QueryRow("INSERT INTO orders(number, user_id) VALUES ($1, $2) RETURNING id, order_date",
 		order.Number,
 		user.GetID(),
@@ -130,7 +131,7 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 	var order models.Order
 	var id int
 	var userId int
-	var orderDate string
+	var orderDate time.Time
 
 	row := pg.db.QueryRow("SELECT id, number, user_id, order_date FROM orders WHERE number = $1", number)
 	err := row.Scan(&id, &order.Number, &userId, &orderDate)
@@ -149,16 +150,21 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 func (pg PGDatabase) GetOrdersByUserLogin(login string) ([]models.Order, error) {
 	var orders []models.Order
 
-	rows, err := pg.db.Query("SELECT o.id, o.number, o.order_date FROM orders o JOIN users u ON o.user_id = u.id WHERE u.login = $1", login)
+	rows, err := pg.db.Query(
+		"SELECT o.id, o.number, o.order_date FROM orders o JOIN users u ON o.user_id = u.id WHERE u.login = $1",
+		login,
+	)
+
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
 		var order models.Order
 		var id int
-		var orderDate string
+		var orderDate time.Time
 		err := rows.Scan(&id, &order.Number, &orderDate)
 		if err != nil {
 			return nil, err

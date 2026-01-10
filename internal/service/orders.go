@@ -47,3 +47,15 @@ func CreateOrder(
 
 	return savedOrder, nil
 }
+
+func GetOrdersByUserLogin(
+	repo repository.DatabaseRepository,
+	login string,
+) ([]models.Order, error) {
+	orders, err := repo.GetOrdersByUserLogin(login)
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
