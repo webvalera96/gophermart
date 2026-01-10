@@ -1,9 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	serviceErrors "gophermart/internal/service/errors"
 )
 
 func isValidLuhn(number string) bool {
@@ -36,11 +36,29 @@ func CreateOrder(
 	repo repository.DatabaseRepository,
 	order models.Order,
 ) (*models.Order, error) {
+
+	// Validate number before creating order
 	valid := isValidLuhn(order.Number)
+
 	if !valid {
-		return nil, fmt.Errorf("Not valid number")
+		return nil, &serviceErrors.OrderInvalidNumberError{}
 	}
+
+	// Check if order already exists
+	existOrder, err := repo.GetOrderByNumber(order.Number)
+	if err != nil {
+		return nil, err
+	}
+
+	// if existing order have another user owner
+	if existOrder != nil && existOrder.Login != order.Login { // вернуть ошибку, что такой заказ уже создан другим пользователем
+		return nil, &serviceErrors.OrderAlreadyCreatedByAnotherUser{}
+	} else if existOrder != nil && existOrder.Login == order.Login { // вернуть ошибку, что пользователь уже создавал такой заказ
+		return existOrder, &serviceErrors.OrderAlreadyCreatedByUser{}
+	}
+
 	savedOrder, err := repo.CreateOrder(order)
+
 	if err != nil {
 		return nil, err
 	}
