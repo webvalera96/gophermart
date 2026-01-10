@@ -79,7 +79,6 @@ func (pg PGDatabase) CreateUser(u models.User) error {
 	} else { // если такой пользователь уже существует, вернуть ошибку создания пользователя
 		return &repository.UserAlreadyExistsError{}
 	}
-	pg.logger.Debug("TODO: create user in database")
 	return nil
 }
 
