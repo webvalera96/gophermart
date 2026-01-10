@@ -1,6 +1,7 @@
 package orders
 
 import (
+	"encoding/json"
 	"errors"
 	"gophermart/internal/logger"
 	"gophermart/internal/models"
@@ -81,7 +82,29 @@ type GetOrdersHandler struct {
 	repo   repository.DatabaseRepository
 }
 
+// 200 — успешная обработка запроса.
+// 204 — нет данных для ответа.
+// 401 — пользователь не авторизован.
+// 500 — внутренняя ошибка сервера.
 func (h GetOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	orders, err := service.GetOrdersByUserLogin(h.repo, r.Header.Get("Login"))
+	if err != nil {
+		http.Error(w, "Failed to get orders", http.StatusInternalServerError)
+		return
+	}
+	if len(orders) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(orders)
+	if err != nil {
+		http.Error(w, "Failed to encode orders", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

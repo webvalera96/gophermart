@@ -9,9 +9,9 @@ import (
 type Order struct {
 	id        int
 	Login     string
-	Number    string
-	orderDate time.Time
-	status    string
+	Number    string    `json:"number"`
+	orderDate time.Time `json:"uploaded_at"`
+	status    string    `json:"status"`
 }
 
 func (o Order) GetStatus() string {

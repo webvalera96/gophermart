@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
 	serviceErrors "gophermart/internal/service/errors"
@@ -45,8 +46,9 @@ func CreateOrder(
 	}
 
 	// Check if order already exists
+	var onfe *repository.OrderNotFoundError
 	existOrder, err := repo.GetOrderByNumber(order.Number)
-	if err != nil {
+	if !errors.As(err, &onfe) {
 		return nil, err
 	}
 
