@@ -7,6 +7,7 @@ import (
 	"gophermart/internal/service"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type PostOrdersHandler struct {
@@ -24,7 +25,7 @@ func (h PostOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: validate that bodyBytes contains a valid order number
-	number := string(bodyBytes)
+	number := strings.Trim(string(bodyBytes), " ")
 
 	login := r.Header.Get("Login")
 
@@ -35,7 +36,7 @@ func (h PostOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Order created: %+v", savedOrder)
+	h.logger.Infof("Order created: %v", savedOrder)
 	w.WriteHeader(http.StatusOK)
 }
 

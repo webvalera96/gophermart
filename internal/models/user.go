@@ -8,10 +8,11 @@ type User struct {
 
 func (u *User) SetID(id int) error {
 	u.id = id
-	// TODO: implement validation logic
+
 	return nil
 }
 
 func (u User) GetID() int {
+
 	return u.id
 }

@@ -9,7 +9,6 @@ type Order struct {
 
 func (o Order) SetID(id int) error {
 	o.id = id
-	// TODO: implement validation logic
 	return nil
 }
 
@@ -17,12 +16,10 @@ func (o Order) GetID() int {
 	return o.id
 }
 
-// TODO: return well formated time date string
 func (o Order) GetOrderDate() string {
 	return o.orderDate
 }
 
 func (o Order) SetOrderDate(orderDate string) error {
-	// TODO: implement validation logic
 	return nil
 }
