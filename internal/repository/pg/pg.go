@@ -36,7 +36,6 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 	m, err := migrate.NewWithSourceInstance(
 		"iofs",
 		d,
-		//TODO: add configuration for sslmode
 		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.User, config.Password, config.Host, config.Port, config.DBName),
 	)
 	if err != nil {
@@ -51,7 +50,6 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 }
 
 func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.DatabaseRepository {
-	// TODO: add configuration for sslmode
 	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s sslmode=disable",
 		config.DBName,
 		config.User,
