@@ -169,8 +169,14 @@ func (pg PGDatabase) GetOrdersByUserLogin(login string) ([]models.Order, error) 
 		if err != nil {
 			return nil, err
 		}
-		order.SetID(id)
-		order.SetOrderDate(orderDate)
+		err = order.SetID(id)
+		if err != nil {
+			return nil, err
+		}
+		err = order.SetOrderDate(orderDate)
+		if err != nil {
+			return nil, err
+		}
 		order.Login = login
 		orders = append(orders, order)
 	}
