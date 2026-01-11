@@ -13,6 +13,9 @@ type DatabaseRepository interface {
 	// Get user balance by login
 	GetUserBalance(login string) (*models.User, error)
 
+	// Withdraw balance from user account
+	WithdrawBalance(login string, sum float64) error
+
 	// --- ORDER operations ---
 	// Create new order for user in database
 	CreateOrder(order models.Order) (*models.Order, error)

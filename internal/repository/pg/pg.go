@@ -132,6 +132,31 @@ func (pg PGDatabase) GetUserBalance(login string) (*models.User, error) {
 	return &user, nil
 }
 
+func (pg PGDatabase) WithdrawBalance(login string, sum float64) error {
+	// Получаем текущий баланс пользователя
+	user, err := pg.GetUserBalance(login)
+	if err != nil {
+		return err
+	}
+
+	// Проверяем, что на счету достаточно средств
+	if user.GetCurrentBalance() < sum {
+		return &repository.InsufficientFundsError{}
+	}
+
+	// Обновляем баланс: уменьшаем current_balance и увеличиваем withdrawn
+	_, err = pg.db.Exec(
+		"UPDATE users SET current_balance = current_balance - $1, withdrawn = withdrawn + $1 WHERE login = $2",
+		sum,
+		login,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
 	var savedOrder models.Order
 

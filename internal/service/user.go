@@ -3,6 +3,7 @@ package service
 import (
 	"gophermart/internal/models"
 	"gophermart/internal/repository"
+	serviceErrors "gophermart/internal/service/errors"
 )
 
 func RegisterUser(
@@ -49,4 +50,24 @@ func GetUserBalance(
 		return nil, err
 	}
 	return user, nil
+}
+
+func WithdrawBalance(
+	repo repository.DatabaseRepository,
+	login string,
+	orderNumber string,
+	sum float64,
+) error {
+	// Проверяем валидность номера заказа
+	if !isValidLuhn(orderNumber) {
+		return &serviceErrors.OrderInvalidNumberError{}
+	}
+
+	// Списываем средства
+	err := repo.WithdrawBalance(login, sum)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

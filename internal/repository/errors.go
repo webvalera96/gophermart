@@ -46,3 +46,12 @@ type OrderAlreadyExistsError struct {
 func (oae *OrderAlreadyExistsError) Error() string {
 	return fmt.Sprintf("code %d: %s", oae.Code, oae.Msg)
 }
+
+type InsufficientFundsError struct {
+	Msg  string
+	Code int
+}
+
+func (ife *InsufficientFundsError) Error() string {
+	return fmt.Sprintf("code %d: %s", ife.Code, ife.Msg)
+}
