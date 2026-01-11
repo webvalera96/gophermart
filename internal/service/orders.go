@@ -79,3 +79,21 @@ func GetOrdersByUserLogin(
 
 	return orders, nil
 }
+
+func GetOrderByNumber(
+	repo repository.DatabaseRepository,
+	number string,
+	login string,
+) (*models.Order, error) {
+	order, err := repo.GetOrderByNumber(number)
+	if err != nil {
+		return nil, err
+	}
+
+	// Проверяем, что заказ принадлежит текущему пользователю
+	if order.Login != login {
+		return nil, &repository.OrderNotFoundError{}
+	}
+
+	return order, nil
+}

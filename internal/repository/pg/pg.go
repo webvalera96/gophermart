@@ -165,9 +165,15 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 	var id int
 	var userId int
 	var orderDate time.Time
+	var status sql.NullString
+	var accrual sql.NullFloat64
+	var login sql.NullString
 
-	row := pg.db.QueryRow("SELECT id, number, user_id, order_date FROM orders WHERE number = $1", number)
-	err := row.Scan(&id, &order.Number, &userId, &orderDate)
+	row := pg.db.QueryRow(
+		"SELECT o.id, o.number, o.user_id, o.order_date, COALESCE(o.status, 'REGISTERED'), o.accrual, u.login FROM orders o JOIN users u ON o.user_id = u.id WHERE o.number = $1",
+		number,
+	)
+	err := row.Scan(&id, &order.Number, &userId, &orderDate, &status, &accrual, &login)
 	order.SetID(id)
 	order.SetOrderDate(orderDate)
 
@@ -175,6 +181,23 @@ func (pg PGDatabase) GetOrderByNumber(number string) (*models.Order, error) {
 		return nil, &repository.OrderNotFoundError{}
 	} else if err != nil {
 		return nil, err
+	}
+
+	if status.Valid {
+		order.SetStatus(status.String)
+	} else {
+		order.SetStatus("REGISTERED")
+	}
+
+	if accrual.Valid {
+		accrualValue := accrual.Float64
+		order.SetAccrual(&accrualValue)
+	} else {
+		order.SetAccrual(nil)
+	}
+
+	if login.Valid {
+		order.Login = login.String
 	}
 
 	return &order, nil
