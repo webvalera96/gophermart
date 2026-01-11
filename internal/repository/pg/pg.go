@@ -132,7 +132,7 @@ func (pg PGDatabase) GetUserBalance(login string) (*models.User, error) {
 	return &user, nil
 }
 
-func (pg PGDatabase) WithdrawBalance(login string, sum float64) error {
+func (pg PGDatabase) WithdrawBalance(login string, orderNumber string, sum float64) error {
 	// Получаем текущий баланс пользователя
 	user, err := pg.GetUserBalance(login)
 	if err != nil {
@@ -144,13 +144,36 @@ func (pg PGDatabase) WithdrawBalance(login string, sum float64) error {
 		return &repository.InsufficientFundsError{}
 	}
 
+	// Начинаем транзакцию
+	tx, err := pg.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	// Обновляем баланс: уменьшаем current_balance и увеличиваем withdrawn
-	_, err = pg.db.Exec(
+	_, err = tx.Exec(
 		"UPDATE users SET current_balance = current_balance - $1, withdrawn = withdrawn + $1 WHERE login = $2",
 		sum,
 		login,
 	)
 	if err != nil {
+		return err
+	}
+
+	// Сохраняем запись о списании
+	_, err = tx.Exec(
+		"INSERT INTO withdrawals(user_id, order_number, sum) VALUES ($1, $2, $3)",
+		user.GetID(),
+		orderNumber,
+		sum,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Коммитим транзакцию
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
@@ -267,4 +290,38 @@ func (pg PGDatabase) GetOrdersByUserLogin(login string) ([]models.Order, error) 
 	}
 
 	return orders, nil
+}
+
+func (pg PGDatabase) GetWithdrawalsByUserLogin(login string) ([]models.Withdrawal, error) {
+	var withdrawals []models.Withdrawal
+
+	rows, err := pg.db.Query(
+		"SELECT w.id, w.order_number, w.sum, w.processed_at FROM withdrawals w JOIN users u ON w.user_id = u.id WHERE u.login = $1 ORDER BY w.processed_at DESC",
+		login,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var withdrawal models.Withdrawal
+		var id int
+		var processedAt time.Time
+		err := rows.Scan(&id, &withdrawal.OrderNumber, &withdrawal.Sum, &processedAt)
+		if err != nil {
+			return nil, err
+		}
+		withdrawal.SetID(id)
+		withdrawal.SetProcessedAt(processedAt)
+		withdrawals = append(withdrawals, withdrawal)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return withdrawals, nil
 }

@@ -109,3 +109,61 @@ func (h *WithdrawHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+type WithdrawalResponse struct {
+	Order       string  `json:"order"`
+	Sum         float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at"`
+}
+
+type GetWithdrawalsHandler struct {
+	logger *logger.Logger
+	repo   repository.DatabaseRepository
+}
+
+func NewGetWithdrawalsHandler(
+	logger *logger.Logger,
+	repo repository.DatabaseRepository,
+) *GetWithdrawalsHandler {
+	return &GetWithdrawalsHandler{logger: logger, repo: repo}
+}
+
+// 200 — успешная обработка запроса.
+// 204 — нет ни одного списания.
+// 401 — пользователь не авторизован.
+// 500 — внутренняя ошибка сервера.
+func (h *GetWithdrawalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	login := r.Header.Get("Login")
+	if login == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	withdrawals, err := service.GetWithdrawalsByUserLogin(h.repo, login)
+	if err != nil {
+		http.Error(w, "Failed to get withdrawals", http.StatusInternalServerError)
+		return
+	}
+
+	if len(withdrawals) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	// Преобразуем withdrawals в формат ответа
+	response := make([]WithdrawalResponse, 0, len(withdrawals))
+	for _, withdrawal := range withdrawals {
+		response = append(response, WithdrawalResponse{
+			Order:       withdrawal.GetOrderNumber(),
+			Sum:         withdrawal.GetSum(),
+			ProcessedAt: withdrawal.GetProcessedAtString(),
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

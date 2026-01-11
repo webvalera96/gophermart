@@ -64,10 +64,21 @@ func WithdrawBalance(
 	}
 
 	// Списываем средства
-	err := repo.WithdrawBalance(login, sum)
+	err := repo.WithdrawBalance(login, orderNumber, sum)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func GetWithdrawalsByUserLogin(
+	repo repository.DatabaseRepository,
+	login string,
+) ([]models.Withdrawal, error) {
+	withdrawals, err := repo.GetWithdrawalsByUserLogin(login)
+	if err != nil {
+		return nil, err
+	}
+	return withdrawals, nil
 }

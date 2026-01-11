@@ -44,6 +44,7 @@ func NewRouter(
 	r.With(authMiddleware(repo, logger)).Post("/api/user/orders", orders.NewPostOrdersHandler(logger, repo).ServeHTTP)
 	r.With(authMiddleware(repo, logger)).Get("/api/user/balance", user.NewBalanceHandler(logger, repo).ServeHTTP)
 	r.With(authMiddleware(repo, logger)).Post("/api/user/balance/withdraw", user.NewWithdrawHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Get("/api/user/withdrawals", user.NewGetWithdrawalsHandler(logger, repo).ServeHTTP)
 	r.With(authMiddleware(repo, logger)).Get("/api/orders/{number}", orders.NewGetOrderByNumberHandler(logger, repo).ServeHTTP)
 
 	return r
