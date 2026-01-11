@@ -99,6 +99,39 @@ func (pg PGDatabase) GetUserByLogin(login string) (*models.User, error) {
 	return &user, nil
 }
 
+func (pg PGDatabase) GetUserBalance(login string) (*models.User, error) {
+	var user models.User
+	var id int
+	var currentBalance, withdrawn sql.NullFloat64
+
+	row := pg.db.QueryRow(
+		"SELECT id, login, COALESCE(current_balance, 0), COALESCE(withdrawn, 0) FROM users WHERE login = $1",
+		login,
+	)
+	err := row.Scan(&id, &user.Login, &currentBalance, &withdrawn)
+	user.SetID(id)
+
+	if err == sql.ErrNoRows {
+		return nil, &repository.UserNotFoundError{}
+	} else if err != nil {
+		return nil, err
+	}
+
+	if currentBalance.Valid {
+		user.SetCurrentBalance(currentBalance.Float64)
+	} else {
+		user.SetCurrentBalance(0.0)
+	}
+
+	if withdrawn.Valid {
+		user.SetWithdrawn(withdrawn.Float64)
+	} else {
+		user.SetWithdrawn(0.0)
+	}
+
+	return &user, nil
+}
+
 func (pg PGDatabase) CreateOrder(order models.Order) (*models.Order, error) {
 	var savedOrder models.Order
 

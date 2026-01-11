@@ -39,3 +39,14 @@ func LoginUser(
 	}
 	return token, nil
 }
+
+func GetUserBalance(
+	repo repository.DatabaseRepository,
+	login string,
+) (*models.User, error) {
+	user, err := repo.GetUserBalance(login)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

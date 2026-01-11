@@ -10,6 +10,9 @@ type DatabaseRepository interface {
 	// Get user by login from database
 	GetUserByLogin(login string) (*models.User, error)
 
+	// Get user balance by login
+	GetUserBalance(login string) (*models.User, error)
+
 	// --- ORDER operations ---
 	// Create new order for user in database
 	CreateOrder(order models.Order) (*models.Order, error)
