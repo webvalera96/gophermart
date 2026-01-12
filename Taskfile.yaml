@@ -1,0 +1,21 @@
+version: "3"
+
+includes:
+  docker: ./docker
+tasks:
+  build:
+    desc: "Build go application"
+    cmds:
+      - go build -o target/gophermart src/gophermart/main.go
+
+  mockgen:
+    desc: "Generate mock implementations for interfaces"
+    cmds:
+      - go install go.uber.org/mock/mockgen@latest
+      - mockgen -destination=internal/mocks/mocks_database.go -package=mocks gophermart/internal/repository DatabaseRepository
+
+  run:
+    desc: "Run go application"
+    cmds:
+      - go run src/gophermart/main.go
+  

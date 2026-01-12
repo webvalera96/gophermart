@@ -1,8 +1,10 @@
+// Package server предоставляет функциональность для запуска HTTP сервера.
 package server
 
 import (
 	"context"
 	"fmt"
+	"gophermart/internal/config"
 	"net"
 	"net/http"
 
@@ -10,8 +12,13 @@ import (
 	"go.uber.org/fx"
 )
 
-func NewHTTPServer(lc fx.Lifecycle, r *chi.Mux) *http.Server {
-	srv := &http.Server{Addr: ":8080", Handler: r}
+// NewHTTPServer создает новый HTTP сервер с указанным роутером и конфигурацией.
+// Настраивает lifecycle хуки для запуска и остановки сервера.
+// Принимает lc - lifecycle для управления жизненным циклом сервера,
+// r - HTTP роутер, cfg - конфигурация приложения с адресом запуска.
+// Возвращает настроенный HTTP сервер.
+func NewHTTPServer(lc fx.Lifecycle, r *chi.Mux, cfg *config.Config) *http.Server {
+	srv := &http.Server{Addr: cfg.RunAddress, Handler: r}
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			ln, err := net.Listen("tcp", srv.Addr)

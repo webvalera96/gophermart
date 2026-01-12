@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  up:
+    desc: "Docker compose up"
+    cmds:
+      - docker compose -f docker-compose.yaml up --detach
+  
+  down:
+    desc: "Docker compose down"
+    cmds:
+      - docker compose -f docker-compose.yaml down

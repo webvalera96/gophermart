@@ -1,13 +1,60 @@
+// Package handlers предоставляет HTTP обработчики и роутинг для API сервера.
 package handlers
 
 import (
+	"gophermart/internal/handlers/api/orders"
 	"gophermart/internal/handlers/api/user"
+	"gophermart/internal/logger"
+	"gophermart/internal/repository"
+	"gophermart/internal/service"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func NewRouter() *chi.Mux {
+// authMiddleware создает middleware для аутентификации пользователей по JWT токену.
+// Проверяет наличие и валидность токена в заголовке Authorization.
+// Принимает _ - репозиторий (не используется), logger - логгер для записи сообщений.
+// Возвращает функцию middleware, которая проверяет токен и устанавливает логин в заголовок запроса.
+func authMiddleware(_ repository.DatabaseRepository, logger *logger.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := r.Header.Get("Authorization")
+			if token == "" {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			login, err := service.ValidateToken(token)
+			if err != nil {
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				return
+			}
+			r.Header.Set("Login", login)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// NewRouter создает новый HTTP роутер с настроенными маршрутами.
+// Регистрирует все эндпоинты API: регистрация, логин, заказы, баланс, списания.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает настроенный роутер chi.Mux.
+func NewRouter(
+	logger *logger.Logger,
+	repo repository.DatabaseRepository,
+) *chi.Mux {
 	r := chi.NewRouter()
-	r.Get("/api/user/register", user.RegisterHandler{}.ServeHTTP)
+
+	r.Post("/api/user/register", user.NewRegisterHandler(logger, repo).ServeHTTP)
+	r.Post("/api/user/login", user.NewLoginHandler(logger, repo).ServeHTTP)
+
+	r.With(authMiddleware(repo, logger)).Get("/api/user/orders", orders.NewGetOrdersHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Post("/api/user/orders", orders.NewPostOrdersHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Get("/api/user/balance", user.NewBalanceHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Post("/api/user/balance/withdraw", user.NewWithdrawHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Get("/api/user/withdrawals", user.NewGetWithdrawalsHandler(logger, repo).ServeHTTP)
+	r.With(authMiddleware(repo, logger)).Get("/api/orders/{number}", orders.NewGetOrderByNumberHandler(logger, repo).ServeHTTP)
+
 	return r
 }

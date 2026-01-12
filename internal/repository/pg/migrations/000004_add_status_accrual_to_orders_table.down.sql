@@ -1,0 +1,3 @@
+ALTER TABLE orders 
+DROP COLUMN IF EXISTS status,
+DROP COLUMN IF EXISTS accrual;
