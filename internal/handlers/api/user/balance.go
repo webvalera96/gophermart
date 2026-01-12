@@ -10,16 +10,21 @@ import (
 	"net/http"
 )
 
+// BalanceHandler обрабатывает HTTP запросы для получения баланса пользователя.
 type BalanceHandler struct {
 	logger *logger.Logger
 	repo   repository.DatabaseRepository
 }
 
+// BalanceResponse представляет ответ с информацией о балансе пользователя.
 type BalanceResponse struct {
-	Current   float64 `json:"current"`
-	Withdrawn float64 `json:"withdrawn"`
+	Current   float64 `json:"current"`   // Current - текущий баланс пользователя
+	Withdrawn float64 `json:"withdrawn"` // Withdrawn - сумма списанных средств
 }
 
+// NewBalanceHandler создает новый обработчик получения баланса пользователя.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает указатель на BalanceHandler.
 func NewBalanceHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
@@ -27,9 +32,13 @@ func NewBalanceHandler(
 	return &BalanceHandler{logger: logger, repo: repo}
 }
 
-// 200 — успешная обработка запроса.
-// 401 — пользователь не авторизован.
-// 500 — внутренняя ошибка сервера.
+// ServeHTTP обрабатывает HTTP запрос на получение баланса пользователя.
+// Требует аутентификации (логин должен быть установлен в заголовке Login через middleware).
+// Возвращает JSON с информацией о балансе.
+// Возможные коды ответа:
+//   - 200 — успешная обработка запроса;
+//   - 401 — пользователь не авторизован;
+//   - 500 — внутренняя ошибка сервера.
 func (h *BalanceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	login := r.Header.Get("Login")
 	if login == "" {
@@ -56,16 +65,21 @@ func (h *BalanceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// WithdrawRequest представляет запрос на списание средств.
 type WithdrawRequest struct {
-	Order string  `json:"order"`
-	Sum   float64 `json:"sum"`
+	Order string  `json:"order"` // Order - номер заказа
+	Sum   float64 `json:"sum"`   // Sum - сумма списания
 }
 
+// WithdrawHandler обрабатывает HTTP запросы для списания средств со счета пользователя.
 type WithdrawHandler struct {
 	logger *logger.Logger
 	repo   repository.DatabaseRepository
 }
 
+// NewWithdrawHandler создает новый обработчик списания средств.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает указатель на WithdrawHandler.
 func NewWithdrawHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
@@ -73,11 +87,15 @@ func NewWithdrawHandler(
 	return &WithdrawHandler{logger: logger, repo: repo}
 }
 
-// 200 — успешная обработка запроса.
-// 401 — пользователь не авторизован.
-// 402 — на счету недостаточно средств.
-// 422 — неверный номер заказа.
-// 500 — внутренняя ошибка сервера.
+// ServeHTTP обрабатывает HTTP запрос на списание средств со счета пользователя.
+// Ожидает JSON с полями Order и Sum в теле запроса.
+// Требует аутентификации (логин должен быть установлен в заголовке Login через middleware).
+// Возможные коды ответа:
+//   - 200 — успешная обработка запроса;
+//   - 401 — пользователь не авторизован;
+//   - 402 — на счету недостаточно средств;
+//   - 422 — неверный номер заказа;
+//   - 500 — внутренняя ошибка сервера.
 func (h *WithdrawHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	login := r.Header.Get("Login")
 	if login == "" {
@@ -110,17 +128,22 @@ func (h *WithdrawHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// WithdrawalResponse представляет информацию об операции списания средств.
 type WithdrawalResponse struct {
-	Order       string  `json:"order"`
-	Sum         float64 `json:"sum"`
-	ProcessedAt string  `json:"processed_at"`
+	Order       string  `json:"order"`        // Order - номер заказа
+	Sum         float64 `json:"sum"`         // Sum - сумма списания
+	ProcessedAt string  `json:"processed_at"` // ProcessedAt - время обработки в формате RFC3339
 }
 
+// GetWithdrawalsHandler обрабатывает HTTP запросы для получения списка операций списания пользователя.
 type GetWithdrawalsHandler struct {
 	logger *logger.Logger
 	repo   repository.DatabaseRepository
 }
 
+// NewGetWithdrawalsHandler создает новый обработчик получения списка операций списания.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает указатель на GetWithdrawalsHandler.
 func NewGetWithdrawalsHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
@@ -128,10 +151,14 @@ func NewGetWithdrawalsHandler(
 	return &GetWithdrawalsHandler{logger: logger, repo: repo}
 }
 
-// 200 — успешная обработка запроса.
-// 204 — нет ни одного списания.
-// 401 — пользователь не авторизован.
-// 500 — внутренняя ошибка сервера.
+// ServeHTTP обрабатывает HTTP запрос на получение списка операций списания пользователя.
+// Требует аутентификации (логин должен быть установлен в заголовке Login через middleware).
+// Возвращает JSON массив с информацией об операциях списания.
+// Возможные коды ответа:
+//   - 200 — успешная обработка запроса;
+//   - 204 — нет ни одного списания;
+//   - 401 — пользователь не авторизован;
+//   - 500 — внутренняя ошибка сервера.
 func (h *GetWithdrawalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	login := r.Header.Get("Login")
 	if login == "" {

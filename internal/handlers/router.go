@@ -1,3 +1,4 @@
+// Package handlers предоставляет HTTP обработчики и роутинг для API сервера.
 package handlers
 
 import (
@@ -11,6 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// authMiddleware создает middleware для аутентификации пользователей по JWT токену.
+// Проверяет наличие и валидность токена в заголовке Authorization.
+// Принимает _ - репозиторий (не используется), logger - логгер для записи сообщений.
+// Возвращает функцию middleware, которая проверяет токен и устанавливает логин в заголовок запроса.
 func authMiddleware(_ repository.DatabaseRepository, logger *logger.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +36,10 @@ func authMiddleware(_ repository.DatabaseRepository, logger *logger.Logger) func
 	}
 }
 
+// NewRouter создает новый HTTP роутер с настроенными маршрутами.
+// Регистрирует все эндпоинты API: регистрация, логин, заказы, баланс, списания.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает настроенный роутер chi.Mux.
 func NewRouter(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,

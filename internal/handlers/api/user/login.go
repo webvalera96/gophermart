@@ -1,6 +1,5 @@
 package user
 
-// TODO: проверить работу логина
 import (
 	"encoding/json"
 	"errors"
@@ -11,11 +10,15 @@ import (
 	"net/http"
 )
 
+// LoginHandler обрабатывает HTTP запросы для аутентификации пользователей.
 type LoginHandler struct {
 	logger *logger.Logger
 	repo   repository.DatabaseRepository
 }
 
+// NewLoginHandler создает новый обработчик аутентификации пользователей.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает указатель на LoginHandler.
 func NewLoginHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
@@ -23,10 +26,14 @@ func NewLoginHandler(
 	return &LoginHandler{logger: logger, repo: repo}
 }
 
-// 200 — пользователь успешно аутентифицирован;
-// 400 — неверный формат запроса;
-// 401 — неверная пара логин/пароль;
-// 500 — внутренняя ошибка сервера.
+// ServeHTTP обрабатывает HTTP запрос на аутентификацию пользователя.
+// Ожидает JSON с полями Login и Password в теле запроса.
+// Возвращает JWT токен в заголовке Authorization при успешной аутентификации.
+// Возможные коды ответа:
+//   - 200 — пользователь успешно аутентифицирован;
+//   - 400 — неверный формат запроса;
+//   - 401 — неверная пара логин/пароль;
+//   - 500 — внутренняя ошибка сервера.
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 

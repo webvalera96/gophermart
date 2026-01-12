@@ -1,3 +1,4 @@
+// Package user предоставляет HTTP обработчики для работы с пользователями.
 package user
 
 import (
@@ -10,11 +11,15 @@ import (
 	"net/http"
 )
 
+// RegisterHandler обрабатывает HTTP запросы для регистрации новых пользователей.
 type RegisterHandler struct {
 	logger *logger.Logger
 	repo   repository.DatabaseRepository
 }
 
+// NewRegisterHandler создает новый обработчик регистрации пользователей.
+// Принимает logger - логгер для записи сообщений, repo - репозиторий для работы с базой данных.
+// Возвращает указатель на RegisterHandler.
 func NewRegisterHandler(
 	logger *logger.Logger,
 	repo repository.DatabaseRepository,
@@ -22,10 +27,14 @@ func NewRegisterHandler(
 	return &RegisterHandler{logger: logger, repo: repo}
 }
 
-// 200 http.StatusOK — пользователь успешно зарегистрирован и аутентифицирован;
-// 400 http.StatusBadRequest — неверный формат запроса;
-// 409 http.StatusConflict — логин уже занят;
-// 500 http.StatusInternalServerError — внутренняя ошибка сервера.
+// ServeHTTP обрабатывает HTTP запрос на регистрацию пользователя.
+// Ожидает JSON с полями Login и Password в теле запроса.
+// Возвращает JWT токен в заголовке Authorization при успешной регистрации.
+// Возможные коды ответа:
+//   - 200 http.StatusOK — пользователь успешно зарегистрирован и аутентифицирован;
+//   - 400 http.StatusBadRequest — неверный формат запроса;
+//   - 409 http.StatusConflict — логин уже занят;
+//   - 500 http.StatusInternalServerError — внутренняя ошибка сервера.
 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 

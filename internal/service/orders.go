@@ -1,3 +1,4 @@
+// Package service предоставляет бизнес-логику для работы с заказами.
 package service
 
 import (
@@ -7,6 +8,9 @@ import (
 	serviceErrors "gophermart/internal/service/errors"
 )
 
+// isValidLuhn проверяет валидность номера заказа по алгоритму Луна.
+// Принимает number - строка с номером заказа.
+// Возвращает true, если номер валиден, иначе false.
 func isValidLuhn(number string) bool {
 	// Check if the string contains only numbers
 	for _, r := range number {
@@ -33,6 +37,14 @@ func isValidLuhn(number string) bool {
 	return sum%10 == 0
 }
 
+// CreateOrder создает новый заказ в системе.
+// Выполняет валидацию номера заказа по алгоритму Луна и проверяет, не был ли заказ уже создан.
+// Принимает repo - репозиторий для работы с базой данных, order - модель заказа для создания.
+// Возвращает указатель на созданный заказ и ошибку, если:
+// - номер заказа невалиден,
+// - заказ уже был создан другим пользователем,
+// - заказ уже был создан этим пользователем,
+// - произошла другая ошибка.
 func CreateOrder(
 	repo repository.DatabaseRepository,
 	order models.Order,
@@ -68,6 +80,9 @@ func CreateOrder(
 	return savedOrder, nil
 }
 
+// GetOrdersByUserLogin получает все заказы пользователя.
+// Принимает repo - репозиторий для работы с базой данных, login - логин пользователя.
+// Возвращает список заказов и ошибку, если произошла ошибка при получении данных.
 func GetOrdersByUserLogin(
 	repo repository.DatabaseRepository,
 	login string,
@@ -80,6 +95,9 @@ func GetOrdersByUserLogin(
 	return orders, nil
 }
 
+// GetOrderByNumber получает заказ по номеру и проверяет, что он принадлежит указанному пользователю.
+// Принимает repo - репозиторий для работы с базой данных, number - номер заказа, login - логин пользователя.
+// Возвращает указатель на модель заказа и ошибку, если заказ не найден или не принадлежит пользователю.
 func GetOrderByNumber(
 	repo repository.DatabaseRepository,
 	number string,

@@ -1,31 +1,50 @@
+// Package repository определяет интерфейсы для работы с хранилищем данных.
 package repository
 
 import "gophermart/internal/models"
 
+// DatabaseRepository определяет интерфейс для работы с базой данных.
+// Предоставляет методы для управления пользователями, заказами и операциями списания средств.
 type DatabaseRepository interface {
 	// --- USER operations ---
-	// Create (register) new user in database
+	// CreateUser создает (регистрирует) нового пользователя в базе данных.
+	// Принимает user - модель пользователя для создания.
+	// Возвращает ошибку, если пользователь уже существует или произошла другая ошибка.
 	CreateUser(user models.User) error
 
-	// Get user by login from database
+	// GetUserByLogin получает пользователя по логину из базы данных.
+	// Принимает login - логин пользователя.
+	// Возвращает указатель на модель пользователя и ошибку, если пользователь не найден.
 	GetUserByLogin(login string) (*models.User, error)
 
-	// Get user balance by login
+	// GetUserBalance получает информацию о балансе пользователя по логину.
+	// Принимает login - логин пользователя.
+	// Возвращает указатель на модель пользователя с информацией о балансе и ошибку, если пользователь не найден.
 	GetUserBalance(login string) (*models.User, error)
 
-	// Withdraw balance from user account
+	// WithdrawBalance списывает средства со счета пользователя.
+	// Принимает login - логин пользователя, orderNumber - номер заказа, sum - сумма списания.
+	// Возвращает ошибку, если средств недостаточно или произошла другая ошибка.
 	WithdrawBalance(login string, orderNumber string, sum float64) error
 
-	// Get all withdrawals by user login
+	// GetWithdrawalsByUserLogin получает все операции списания для пользователя по логину.
+	// Принимает login - логин пользователя.
+	// Возвращает список операций списания и ошибку, если произошла ошибка при получении данных.
 	GetWithdrawalsByUserLogin(login string) ([]models.Withdrawal, error)
 
 	// --- ORDER operations ---
-	// Create new order for user in database
+	// CreateOrder создает новый заказ для пользователя в базе данных.
+	// Принимает order - модель заказа для создания.
+	// Возвращает указатель на созданный заказ и ошибку, если произошла ошибка.
 	CreateOrder(order models.Order) (*models.Order, error)
 
-	// Get order by number
+	// GetOrderByNumber получает заказ по номеру из базы данных.
+	// Принимает number - номер заказа.
+	// Возвращает указатель на модель заказа и ошибку, если заказ не найден.
 	GetOrderByNumber(number string) (*models.Order, error)
 
-	// Get all orders by user login
+	// GetOrdersByUserLogin получает все заказы пользователя по логину.
+	// Принимает login - логин пользователя.
+	// Возвращает список заказов и ошибку, если произошла ошибка при получении данных.
 	GetOrdersByUserLogin(login string) ([]models.Order, error)
 }

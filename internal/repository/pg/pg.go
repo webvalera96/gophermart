@@ -1,3 +1,4 @@
+// Package pg предоставляет реализацию DatabaseRepository для PostgreSQL.
 package pg
 
 import (
@@ -18,6 +19,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// PGDatabase представляет реализацию DatabaseRepository для PostgreSQL.
+// Содержит подключение к базе данных и логгер.
 type PGDatabase struct {
 	db     *sql.DB
 	logger *logger.Logger
@@ -27,6 +30,10 @@ type PGDatabase struct {
 var embedMigrations embed.FS
 
 func migrateDatabase(config *config.Config, logger *logger.Logger) error {
+	if config.DatabaseURI == "" {
+		logger.Fatalf("DatabaseURI is not set")
+		return fmt.Errorf("DatabaseURI is not set")
+	}
 
 	d, err := iofs.New(embedMigrations, "migrations")
 	if err != nil {
@@ -37,7 +44,7 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 	m, err := migrate.NewWithSourceInstance(
 		"iofs",
 		d,
-		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.User, config.Password, config.Host, config.Port, config.DBName),
+		config.DatabaseURI,
 	)
 	if err != nil {
 		logger.Fatalf("Migration failed: %v", err)
@@ -50,17 +57,27 @@ func migrateDatabase(config *config.Config, logger *logger.Logger) error {
 	return nil
 }
 
+// NewPGDatabase создает новый экземпляр PGDatabase и выполняет миграции базы данных.
+// Принимает config - конфигурация приложения с параметрами подключения к БД,
+// logger - логгер для записи сообщений.
+// Возвращает реализацию DatabaseRepository для PostgreSQL.
+// Паникует, если не удалось подключиться к базе данных или выполнить миграции.
 func NewPGDatabase(config *config.Config, logger *logger.Logger) repository.DatabaseRepository {
-	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s sslmode=disable",
-		config.DBName,
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-	)
-	err := migrateDatabase(config, logger)
+	if config.DatabaseURI == "" {
+		logger.Fatalf("DatabaseURI is not set")
+		panic("DatabaseURI is not set")
+	}
 
-	db, err := sql.Open("postgres", connStr)
+	err := migrateDatabase(config, logger)
+	if err != nil {
+		logger.Fatalf("Migration failed: %v", err)
+		panic(err)
+	}
+
+	// Преобразуем postgres:// URI в формат для lib/pq
+	// lib/pq использует формат "postgres://user:password@host:port/dbname?sslmode=disable"
+	// который совместим с нашим DatabaseURI
+	db, err := sql.Open("postgres", config.DatabaseURI)
 	if err != nil {
 		panic(err)
 	}
